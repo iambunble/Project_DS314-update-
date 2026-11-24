@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Môi trường ảo
+.venv*/
+venv/
+.env
+
+# Dữ liệu và kết quả build (mỗi người tự build / tự đặt ảnh)
+artifacts/*
+!artifacts/.gitkeep
+data/images/*
+!data/images/.gitkeep
+
+# Model nặng (giữ lại embedding tên lớp YOLOE vì cần để chạy)
+*.pt
+*.ts
+!weights/yoloe_text_emb.pt
+
+# Ảnh rà soát metadata: chỉ giữ file csv/xlsx/README
+metadata_review/**/*.jpg
+metadata_review/_anh_mau_claude_da_xem/
+
+# Office, IDE, hệ điều hành
+~$*
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+.streamlit/secrets.toml
+
+# Bản sao code cũ trước nâng cấp nhận diện (đã có lịch sử git)
+_backup_truoc_nang_cap_nhan_dien/
+
+# Ảnh thử cho Colab (tạo lại được, không đẩy lên Git)
+colab/*.zip

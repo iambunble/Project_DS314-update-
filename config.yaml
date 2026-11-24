@@ -1,0 +1,246 @@
+# ===== Cấu hình hệ thống truy vấn ảnh =====
+paths:
+  metadata_csv: data/metadata.csv        # file metadata 5000 ảnh
+  image_root: data/images                # chép Batch1/2/3 vào đây (quét đệ quy; không đẩy lên Git)
+  index_dir: artifacts                   # nơi lưu embedding + chỉ mục đã build
+
+# Tên file ảnh -> imageID. Ảnh "08_509.jpg" + day/owner trong CSV -> "day1_Kitchen_08_509"
+image_name_pattern: '^(?P<hour>\d{1,2})_(?P<frame>\d+)$'
+
+# frame được hiểu là số giây trong giờ (frame max ~3671 ≈ 3600 giây).
+# Nếu sai, đổi frames_per_second cho đúng (vd 30 nếu video 30fps).
+frames_per_second: 1
+
+encoders:
+  # Embedding mô tả (description) — đa ngôn ngữ để gõ tiếng Việt vẫn khớp mô tả tiếng Anh
+  text:
+    enabled: true
+    backend: sentence_transformers        # sentence_transformers | tfidf (offline, để test)
+    model: intfloat/multilingual-e5-base  # nặng hơn nhưng tốt hơn: BAAI/bge-m3
+    query_prefix: "query: "
+    passage_prefix: "passage: "
+    batch_size: 64
+  # CLIP: so trực tiếp câu truy vấn với nội dung ảnh (bổ sung chi tiết mô tả bỏ sót)
+  clip:
+    enabled: true
+    backend: open_clip                    # open_clip | sentence_transformers (bản cũ)
+    model: xlm-roberta-base-ViT-B-32      # chữ XLM-R hiểu tiếng Việt tốt; ảnh ViT-B/32 (nhanh trên CPU)
+    pretrained: laion5b_s13b_b90k
+    # Có GPU -> mạnh hơn nhiều:  model: ViT-B-16-SigLIP-i18n-256   pretrained: webli
+    # bản cũ (backend: sentence_transformers):
+    image_model: clip-ViT-B-32
+    text_model: sentence-transformers/clip-ViT-B-32-multilingual-v1
+    batch_size: 32
+
+# Sổ tay trang phục: gom người theo bộ đồ, mỗi nhóm 1 mô tả do người ghi (data/outfits.yaml).
+# Build / xem ảnh mẫu:  python scripts/outfits.py build      Thử 1 câu:  python scripts/outfits.py try "áo len sọc"
+outfits:
+  enabled: true
+  labels: data/outfits.yaml
+  k: 60                 # số nhóm khi build (đổi -> phải ghi nhãn lại)
+  drop_far_pct: 15      # bỏ nhãn của 15% người xa tâm nhóm nhất (dễ bị gom nhầm)
+
+# Người đã biết (data/people.yaml): đề nhắc "thầy Linh" / "thầy" -> ưu tiên ảnh có đúng người đó.
+# Build:  python scripts/people.py build      Kiểm tra bằng mắt:  python scripts/people.py sheet linh
+people:
+  enabled: true
+  file: data/people.yaml
+  lo: 0.5               # xác suất "là người đó" ≤ lo -> không tính
+  hi: 0.9               # ≥ hi -> chắc chắn là người đó (thưởng đủ)
+
+# Nhận diện đồ vật + màu áo bằng YOLO11 (bước "detect" khi build)
+vision:
+  enabled: true
+  model: yolo11s.pt        # CPU: ~150 ms/ảnh. yolo11m.pt chính xác hơn (đếm đúng hơn ở ảnh đông người) nhưng chậm ~3 lần
+  imgsz: 640
+  conf: 0.25               # ngưỡng lưu kết quả
+  count_conf: 0.35         # ngưỡng tính là "có" khi đếm / chấm điểm
+  iou: 0.5
+  batch: 8
+  object_source: yolo      # yolo | csv | max  — nguồn số lượng đồ vật dùng khi chấm điểm
+
+# ===== Hiểu bố cục cảnh (camera cố định, cùng 1 căn bếp) =====
+# Rút ra từ việc phân tích ảnh Batch1–3: mọi ảnh cùng 1 góc máy -> 1 toạ độ luôn là 1 chỗ trong phòng.
+scene:
+  enabled: true
+  clean_descriptions: true      # bỏ câu chỉ tả nội thất cố định ("white cabinets, red backsplash...")
+  sentence_index: true          # embed từng câu mô tả, lấy câu khớp nhất (không bị câu nền làm loãng)
+  # Vùng trong ảnh, tỉ lệ 0..1: [x1, y1, x2, y2]. Người thuộc vùng nếu "điểm chân" (giữa cạnh dưới khung) nằm trong.
+  # Xem/hiệu chỉnh:  python scripts/show_zones.py   (vẽ vùng + điểm chân mọi người lên 1 ảnh)
+  zones:
+    stove:        {label: "bếp nấu",         rects: [[0.565, 0.22, 0.77, 0.56]]}
+    sink:         {label: "bồn rửa",         rects: [[0.46, 0.42, 0.585, 0.64]]}
+    island:       {label: "sau đảo bếp",     rects: [[0.30, 0.20, 0.56, 0.40]]}
+    dining:       {label: "bàn ăn / ghế",    rects: [[0.16, 0.40, 0.46, 0.75]]}
+    living:       {label: "phòng khách / sofa", rects: [[0.04, 0.14, 0.28, 0.40]]}
+    side_counter: {label: "quầy bên trái",   rects: [[0.00, 0.44, 0.16, 0.80]]}
+    foreground:   {label: "gần camera",      rects: [[0.10, 0.78, 0.86, 1.00]]}
+    walkway:      {label: "lối đi bên phải", rects: [[0.62, 0.56, 0.82, 0.80]]}
+    # Tủ lạnh đen (góc phải). Đo trên mô tả: ảnh nói "at/opening the fridge" có người ở đây 37% (ảnh khác 11%)
+    fridge:       {label: "tủ lạnh",         rects: [[0.50, 0.80, 0.72, 1.00]]}
+  # Cắt riêng các vùng này để CLIP nhìn rõ đồ vật nhỏ (đồ ăn trên đảo bếp, nồi trên bếp...). [] = tắt
+  regions:
+    island: [0.20, 0.20, 0.66, 0.66]
+    stove:  [0.50, 0.08, 0.80, 0.58]
+    living: [0.03, 0.08, 0.36, 0.50]
+  # CLIP cho từng người (cắt theo khung YOLO) -> bắt quần áo, tư thế, hành động của người dù người chỉ chiếm 3% ảnh
+  person_crops: true
+  person_min_area: 0.004        # bỏ người quá nhỏ (tỉ lệ diện tích ảnh)
+  person_pad: 0.10              # nới khung người thêm 10% mỗi phía
+  # Nội thất cố định: YOLO thấy ở gần như mọi ảnh -> "có sofa", "có lò" không giúp phân biệt -> không cộng điểm
+  fixed_objects: [dining table, couch, chair, oven, sink, refrigerator, tv, potted plant]
+  fixed_object_rate: 0.5        # lớp xuất hiện ở >= 50% số ảnh cũng coi là cố định (trừ person)
+
+search:
+  top_k: 20
+  # Trọng số kết hợp điểm (sau khi chuẩn hoá min-max về [0,1])
+  # Thành phần nào chưa build thì tự bỏ, trọng số còn lại được chia lại cho đủ 1.
+  weights:
+    text: 0.45          # mô tả (đã bỏ câu nền): 0.5·cả đoạn + 0.5·câu khớp nhất
+    clip: 0.15          # CLIP toàn ảnh
+    region: 0.10        # CLIP trên vùng cắt (đảo bếp, bếp nấu, phòng khách) — lấy vùng khớp nhất
+    person: 0.20        # CLIP trên từng người — chỉ dùng khi câu hỏi nói về người
+    outfit: 0.20        # sổ tay trang phục (data/outfits.yaml) — chỉ khi câu có tả quần áo
+    bm25: 0.10          # BM25 chỉ phát huy khi query tiếng Anh; tự giảm khi query tiếng Việt
+  bm25_weight_vietnamese: 0.03
+  zone_bonus: 0.30      # người đứng đúng vùng được nhắc ("ở bếp nấu", "trên sofa")
+  dedup_seconds: 90     # gộp các khung cách nhau < 90s thành 1 "sự kiện" (đo đề thi: top-k đa dạng hơn; mở chi tiết để xem/nộp từng khung). 0 = tắt
+  # Hệ số chung nhân MỌI điểm thưởng bên dưới (màu áo, vùng, đếm người, đang cầm, tư thế, tên, vị trí khung).
+  # 0.5: đo 13 đề (bỏ-1-đề) -> nhóm chứa đáp án vào top 10 sớm hơn; 1.0 = như trước 24/11.
+  bonus_weight: 0.5
+  # Đồ vật / số lượng nhắc trong câu -> cộng điểm (mềm) thay vì lọc cứng, vì detector có thể sai
+  object_bonus: 0.10
+  count_bonus: 0.25
+  color_bonus: 0.25    # khớp màu áo ("áo xanh", "blue shirt")
+  count_tolerance: 1    # "3 người" chấp nhận 2–4 người (vẫn cộng điểm, mức thấp hơn)
+  strict_objects: false # true = loại hẳn ảnh không có đồ vật được nhắc
+  holding_bonus: 0.25   # [nâng cấp] "người cầm dao / điện thoại" (cần hands)
+  posture_bonus: 0.10   # [nâng cấp, thử nghiệm] "đang ngồi / đứng / cúi" (cần pose) — luật tư thế còn thô
+  named_bonus: 0.30    # ảnh có người được nhắc tên (thầy Linh...) — cần people.enabled + build
+  # Đề thi DRES thường là đoạn nhiều câu. Từ min_sentences câu trở lên: chấm thêm từng câu rồi lấy trung bình
+  # (trọng số sentence_weight), và nhân các điểm thưởng (đếm người, vùng, màu...) với bonus_scale vì đọc từ câu dài
+  # dễ sai. enabled: false = như bản cũ.
+  # fusion: cách gộp điểm trong từng câu — weighted (mặc định) | max | mixed. So sánh: python eval/evaluate.py --kis
+  # first_weight: câu gợi ý ĐẦU TIÊN nặng gấp mấy lần các câu sau (BTC đưa câu quan trọng nhất trước; câu sau hay là
+  # chi tiết phụ mà mô tả/CLIP khó thấy). 1 = các câu bằng nhau như bản cũ.
+  long_query: {enabled: true, min_sentences: 2, sentence_weight: 0.7, bonus_scale: 0.5, fusion: weighted, first_weight: 2.0}
+  # Rerank top-N: đề tả nhiều người/vật trong CÙNG 1 ảnh -> ghép mỗi người/vật với 1 người khác nhau (CLIP từng người)
+  # hoặc 1 vùng cắt (đảo bếp / bếp nấu / phòng khách, khi YOLO không thấy người đó) bằng Hungarian. Chỉ chạy khi đề có
+  # >= min_entities người/vật (câu "Anh ấy ..." gộp với câu trước).
+  rerank: {enabled: true, top_n: 300, weight: 0.3, min_entities: 2, zone_penalty: 1.0, region_penalty: 0.5,
+           phrases: false, outfit_weight: 0.0}
+  # phrases: true = chấm thêm từng cụm thuộc tính ('a man in a blue jersey' | 'a man holding a red board') — CLIP
+  # khớp cụm ngắn tốt hơn, nhưng mỗi cụm tốn ~0.4 giây mã hoá trên CPU và đo 13 đề chưa thấy hơn rõ -> tắt.
+  # Khi nói "lúc 9h" không có khoảng -> lấy trọn giờ 9 (9:00–9:59).
+  # "khoảng 9h" -> nới thêm ± approx_hours
+  approx_hours: 1
+  # "lúc 9h30" -> lấy 9:15–9:45
+  minute_window: 15
+
+# ===== NÂNG CẤP NHẬN DIỆN (dao, nồi, chảo, thớt, đĩa, cốc, điện thoại · tư thế · đang cầm gì) =====
+# Mỗi phần có công tắc riêng. Đổi enabled: false là TẮT NGAY, không cần build lại — hệ thống chấm điểm như cũ.
+# Build:  python scripts/build_index.py --stages tags,objects,pose,hands     (~1 giờ trên CPU, chỉ chạy 1 lần)
+# So sánh bật/tắt từng phần:  python eval/evaluate.py --ablation
+objects:
+  # [PA1] CLIP theo vùng: so vùng cắt sẵn (region_emb.npy) với câu "a pot on the stove" / "an empty stove".
+  # Bước build "tags" chỉ mất vài giây. Câu mẫu mặc định ở search/vision_extras.py (DEFAULT_CLIP_TAGS).
+  clip_tags:
+    enabled: true
+    thresholds: {}        # để trống = tự chọn ngưỡng theo phân bố (Otsu); vd {pot: 0.012} để đặt tay
+    tags: {}              # thêm/ghi đè: {tên: {region: stove|island|living, pos: [...], neg: [...]}}
+  # Nguồn cho câu có/không từng đồ vật (yoloe | clip). Chọn theo AUC đo trên 5000 ảnh:
+  # CLIP vùng đoán nồi còn tệ hơn ngẫu nhiên (AUC 0.43) -> nồi, chảo, cốc chỉ dùng YOLOE.
+  sources:
+    pot: [yoloe]
+    frying pan: [yoloe]
+    cup: [yoloe]
+    cell phone: [yoloe]
+    knife: [yoloe, clip]
+    cutting board: [yoloe, clip]
+    plate: [yoloe, clip]
+  # [PA2] YOLOE: detector nhận lớp bằng chữ, chạy trên vùng làm việc phóng to.
+  yoloe:
+    enabled: true
+    model: weights/yoloe-26s-seg.pt
+    text_emb: weights/yoloe_text_emb.pt   # embedding tên lớp tính sẵn -> không cần gói clip / model chữ
+    crop: [0.20, 0.08, 0.80, 0.66]        # vùng làm việc (đảo bếp + bếp nấu + bồn rửa), tỉ lệ 0..1
+    imgsz: 960
+    conf: 0.15                            # ngưỡng lưu kết quả
+    count_conf: 0.30                      # ngưỡng tính là "có" khi đếm
+    p_low: 0.15                           # đổi độ tin cậy -> điểm có mặt 0..1: <= p_low = 0, >= p_high = 1
+    p_high: 0.5
+    batch: 8
+    classes:                              # tên trong hệ thống: câu gõ cho YOLOE (đổi -> cần gói clip để tính lại)
+      knife: knife
+      pot: cooking pot
+      frying pan: frying pan
+      cutting board: cutting board
+      plate: plate
+      cup: cup
+      cell phone: mobile phone
+
+# [PA2] YOLO-pose: khung xương -> tư thế (đứng/ngồi/cúi), vùng thân áo theo vai–hông, vị trí cổ tay.
+pose:
+  enabled: true
+  model: weights/yolo26s-pose.pt
+  imgsz: 640
+  conf: 0.25
+  kp_conf: 0.3            # điểm khớp có độ tin cậy dưới mức này coi như không thấy
+  match_iou: 0.4          # ghép người của pose với người trong detections.json
+  sitting_zones: [living, dining]   # người ở vùng này mà đùi ngắn / khuất gối -> coi là đang ngồi
+  # Tư thế được dùng khi tìm. "sitting" đang TẮT: đo trên 5000 ảnh làm "người đang ngồi" kém đi (P@20 0.70 -> 0.55);
+  # câu có "ngồi" vẫn tìm bằng mô tả + CLIP như cũ. Thêm sitting vào danh sách để bật lại.
+  postures: [standing, bending]
+  batch: 8
+
+# Màu áo lấy từ đâu: pose = tứ giác vai–hông (mới) · box = ô cố định trong khung người (cũ)
+colors:
+  source: pose
+
+# [PA2] Vùng bàn tay -> đang cầm gì. Câu CLIP mặc định ở search/vision_extras.py (DEFAULT_HAND_PROMPTS).
+hands:
+  enabled: true
+  size: 0.22              # cạnh ô bàn tay = 22% chiều cao khung người
+  top_frac: 0.12          # chỉ 12% bàn tay giống "đang cầm <vật>" nhất mới được điểm CLIP
+  prompts: {}             # ghi đè: {knife: ["a hand holding a knife", ...]}
+
+# ===== HỎI ĐÁP: câu hỏi theo thời gian ("mấy lần", "bao lâu", "lần đầu", "sau khi ... thì") =====
+# Ảnh khớp sự việc = điểm >= trung vị + event_rel·(cao nhất − trung vị). Các ảnh khớp liền nhau gộp thành 1 "lần".
+qa:
+  participants: data/participants.yaml
+  event_rel: 0.8          # cao hơn = khắt khe hơn (ít lần hơn)
+  episode_gap: 120        # 2 ảnh khớp cách nhau > 120 giây -> 2 lần khác nhau
+  episode_miss: 1         # trong 1 lần cho xen tối đa 1 ảnh không khớp (1 ảnh nhận sai không làm vỡ lần)
+  presence_miss: 5        # "thầy Linh ở trong bếp bao lâu": YOLO hay sót người bị che -> cho xen 5 ảnh
+  presence_gap: 180       #   ... và 2 lần thấy cách nhau <= 3 phút vẫn tính là 1 lần có mặt
+  relative_window: 1800   # "sau khi X thì ...": xét 30 phút sau / trước X
+  distinct_min_hits: 3    # "bao nhiêu người khác nhau từ 9h đến 11h": cần >= 3 lượt xuất hiện mới tính
+
+# ===== DỊCH TRUY VẤN VI -> EN (Cross-lingual IR) =====
+# CLIP và 5000 mô tả ảnh đều là tiếng Anh; câu tiếng Việt dài làm CLIP xếp ảnh đúng ở hạng 900–3000 (đề 23/11).
+# Model dịch tự tải lần đầu (~1 GB, cần `pip install sentencepiece`). Mỗi câu ~1 giây trên CPU, có cache theo câu
+# (đề cho thêm 1 câu gợi ý mỗi 30s -> chỉ dịch câu mới). Bảng thuật ngữ của bếp: src/retrieval/query/translate.py
+translation:
+  enabled: true
+  model: VietAI/envit5-translation
+  quantize: true          # int8 trên CPU: nhanh hơn, chất lượng gần như không đổi
+  clip_query: en          # CLIP dùng câu: vi | en | both
+  text_query: en          # e5 (so với mô tả) dùng câu: vi | en | both (both chậm hơn ~0.2 s, đo không hơn)
+
+temporal:
+  candidates_per_event: 100   # số ứng viên mỗi sự kiện khi tìm chuỗi
+  max_gap_seconds: 3600       # khoảng cách tối đa giữa 2 sự kiện liên tiếp
+  min_gap_seconds: 1
+
+# ===== NỘP BÀI DRES (cuộc thi Castle5000) =====
+# Tài khoản KHÔNG ghi ở đây (file này nằm trong git). Đặt trong file .env ở thư mục gốc (đã gitignore):
+#   DRES_USERNAME=UIA_TenCuaBan
+#   DRES_PASSWORD=MatKhauCuaBan
+#   DRES_EVALUATION_ID=            # tuỳ chọn; bỏ trống = tự lấy buổi thi đang ACTIVE
+# hoặc nhập trực tiếp ở thanh bên của giao diện. Xem mẫu: .env.example
+dres:
+  url: https://dres.2hbread.com/api/v2
+  collection: castle5000
+  item_prefix: day1_Kitchen_       # 10_1528.jpg -> day1_Kitchen_10_1528 (imageID trong metadata)
+  timeout: 10
+  log_file: artifacts/dres_submissions.jsonl   # nhật ký mọi lần nộp (đúng/sai/lỗi)

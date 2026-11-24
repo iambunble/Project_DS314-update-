@@ -1,0 +1,11 @@
+# Theme của giao diện (xem thêm app/ui.py). Streamlit đọc file này khi chạy từ thư mục gốc dự án.
+[theme]
+base = "light"
+primaryColor = "#2E44F5"
+backgroundColor = "#F4F6FD"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1A1C3D"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"

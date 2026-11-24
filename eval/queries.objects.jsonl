@@ -1,0 +1,15 @@
+{"query": "người cầm dao cắt đồ ăn", "weak": "knife|cutting|chopping|slicing"}
+{"query": "a person holding a knife", "weak": "knife|cutting|chopping|slicing"}
+{"query": "người đang cắt trái cây trên thớt", "weak": "cutting board|chopping board"}
+{"query": "có nồi trên bếp", "weak": "\\bpots?\\b|saucepan"}
+{"query": "a pot on the stove", "weak": "\\bpots?\\b|saucepan"}
+{"query": "chảo trên bếp", "weak": "\\bpans?\\b|frying|skillet"}
+{"query": "đĩa thức ăn trên bàn", "weak": "\\bplates?\\b"}
+{"query": "người cầm điện thoại", "weak": "phone"}
+{"query": "someone looking at a phone", "weak": "phone"}
+{"query": "người cầm cốc", "weak": "\\bcups?\\b|\\bmugs?\\b|drinking"}
+{"query": "người đang ngồi", "weak": "sitting|seated"}
+{"query": "người cúi người xuống", "weak": "bending|leaning over|bent over"}
+{"query": "người mặc áo xanh dương", "weak": "blue (shirt|t-shirt|top|jacket|hoodie|sweater|jersey)"}
+{"query": "người mặc áo trắng", "weak": "white (shirt|t-shirt|top|jacket|hoodie|sweater|jersey)"}
+{"query": "người mặc áo xám", "weak": "gr[ae]y (shirt|t-shirt|top|jacket|hoodie|sweater|jersey)"}

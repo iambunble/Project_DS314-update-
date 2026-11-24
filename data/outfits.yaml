@@ -1,0 +1,74 @@
+# Sổ tay trang phục: mỗi nhóm người (gom theo ngoại hình) -> mô tả bộ đồ.
+#
+# Nhóm do  python scripts/outfits.py build  tạo ra (lưu ở artifacts/outfit_ids.npy) kèm ảnh mẫu
+# artifacts/outfits/sheet_*.png. Xem ảnh mẫu rồi sửa mô tả ở đây; để trống ("") = nhóm lẫn nhiều bộ đồ,
+# hệ thống không dùng nhãn cho nhóm đó. Sửa xong không cần build lại, chỉ cần mở lại app.
+#
+# fingerprint: số người trong từng nhóm lúc ghi nhãn — dùng để phát hiện nhóm đã bị chia lại (build lại
+# với dữ liệu khác) mà nhãn còn cũ. Không sửa tay.
+k: 60
+fingerprint: [185, 210, 298, 213, 95, 302, 121, 182, 152, 221, 163, 110, 160, 148, 269, 350, 319, 310,
+  179, 99, 199, 155, 314, 157, 218, 159, 231, 346, 203, 156, 217, 117, 353, 244, 272, 89,
+  185, 134, 337, 136, 310, 258, 208, 181, 184, 85, 419, 257, 245, 120, 211, 150, 307, 255,
+  173, 152, 121, 106, 163, 195]
+labels:
+  0: "đàn ông mặc áo sơ mi xanh dương nhạt dài tay, quần jean xanh đậm"
+  1: ""
+  2: "đàn ông mặc áo sơ mi xám dài tay, quần jean"
+  3: ""
+  4: "đàn ông mặc áo thể thao xanh dương, đeo tạp dề đen có chữ W3C"
+  5: "đàn ông mặc áo len sọc ngang, phần trên màu kem sáng có sọc nâu, phần dưới màu đen, quần jean"
+  6: "đàn ông mặc áo thể thao xanh dương có hoạ tiết trắng, đeo đèn trên đầu"
+  7: "đàn ông mặc áo thể thao xanh dương, quần đen"
+  8: "đàn ông đeo kính mặc áo sơ mi kẻ caro đỏ, quần jean"
+  9: "đàn ông hói mặc áo len xám, quần jean"
+  10: "đàn ông mặc áo sơ mi trắng dài tay, quần đen, đang ngồi"
+  11: "cô gái tóc dài mặc áo đen, quần tất nâu"
+  12: "cô gái mặc áo len trắng ngà (màu kem), váy dài đen"
+  13: "đàn ông đội mũ nồi mặc áo thun trắng, quần jean"
+  14: ""
+  15: ""
+  16: "đàn ông mặc áo sơ mi xanh dương, quần đen"
+  17: "đàn ông đội mũ mặc áo thun trắng, quần jean"
+  18: "đàn ông mặc áo sơ mi kẻ caro, quần kaki"
+  19: ""
+  20: "cô gái tóc dài mặc áo trắng bó dài tay, quần nâu"
+  21: "đàn ông mặc áo thể thao xanh dương, đeo đèn trên đầu"
+  22: ""
+  23: "đàn ông mặc áo thể thao xanh dương"
+  24: ""
+  25: "đàn ông mặc áo thể thao xanh dương có hoạ tiết trắng, đeo đèn trên đầu"
+  26: ""
+  27: ""
+  28: ""
+  29: "cô gái tóc dài mặc áo trắng bó dài tay, quần nâu"
+  30: "đàn ông mặc áo thun xanh đậm có chữ in sau lưng, quần jean"
+  31: "cô gái tóc dài mặc áo len đen có hình in trắng"
+  32: ""
+  33: ""
+  34: ""
+  35: "đàn ông mặc áo khoác xanh đen có hình in nhiều màu sau lưng"
+  36: ""
+  37: "đàn ông mặc áo thun xanh đậm có chữ in sau lưng, quần jean"
+  38: ""
+  39: "đàn ông mặc áo sơ mi kẻ caro, quần kaki"
+  40: ""
+  41: ""
+  42: "đàn ông mặc áo sơ mi xám dài tay, quần jean xám"
+  43: ""
+  44: ""
+  45: ""
+  46: ""
+  47: ""
+  48: ""
+  49: "cô gái tóc dài mặc áo đen, quần nâu"
+  50: "đàn ông mặc áo len xám, quần jean"
+  51: "đàn ông mặc áo khoác xanh đen, bên trong áo thể thao xanh dương"
+  52: ""
+  53: ""
+  54: "cô gái mặc áo len trắng ngà (màu kem), quần đen"
+  55: ""
+  56: ""
+  57: "đàn ông mặc áo sơ mi kẻ caro đỏ, quần jean"
+  58: "đàn ông đeo kính mặc áo sơ mi kẻ caro đỏ, quần jean"
+  59: "cô gái tóc dài mặc áo len trắng ngà (màu kem), quần đen"

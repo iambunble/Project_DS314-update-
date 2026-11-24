@@ -1,0 +1,45 @@
+# Danh sách người tham gia buổi thu dữ liệu — dùng để trả lời "có bao nhiêu người trong buổi thu dữ liệu này".
+#
+# Không đếm được bằng máy: 1 người bị chia ra nhiều nhóm trang phục (data/outfits.yaml, k=60), 1 nhóm lại lẫn nhiều
+# người, và vector CLIP của các nhóm gần như giống nhau. Nên danh sách này do người ghi:
+#   - ảnh đông nhất: day1_Kitchen_14_2886 có 11 người khác nhau, day1_Kitchen_14_2778 (cùng phút) thêm người áo
+#     caro đỏ; 1 người còn lại (áo thể thao xanh dương) có ở day1_Kitchen_16_2221
+#   - 2 bộ đồ gần như không bao giờ cùng xuất hiện trong 1 ảnh = cùng 1 người thay / cởi áo: áo khoác xanh đen <->
+#     áo thể thao xanh dương, áo len sọc <-> áo thun trắng + mũ, áo len kem + váy <-> áo len kem + quần
+# groups = các nhóm trang phục chủ yếu là người đó (để lấy ảnh bằng chứng; nhóm lẫn thì không ghi).
+#
+# reviewed: false = chưa ai kiểm lại -> câu trả lời ghi tin cậy "trung bình" và kèm khoảng sai số.
+# Kiểm xong (thêm / gộp / bỏ người) thì đặt reviewed: true. Không cần build lại.
+reviewed: false
+uncertain: 1      # chưa chắc: người áo len xanh đen (day1_Kitchen_20_1790) có thể là người áo sơ mi xanh dương mặc thêm
+                  # áo len -> khi đó còn 13
+participants:
+  - name: linh
+    description: "thầy Linh — đàn ông châu Á đeo kính, áo len xanh dương, quần jean"
+    groups: [1, 38]
+  - description: "đàn ông châu Á đeo kính, áo sơ mi kẻ caro đỏ, quần jean"
+    groups: [8, 57, 58]
+  - description: "đàn ông châu Á, áo sơ mi kẻ caro xanh xám, quần kaki"
+    groups: [18, 39]
+  - description: "đàn ông đeo kính, áo sơ mi trắng dài tay, quần đen"
+    groups: [10, 15]
+  - description: "đàn ông to người, áo sơ mi xám dài tay, quần jean xám"
+    groups: [2, 42]
+  - description: "đàn ông áo polo xanh đậm có chữ in sau lưng, quần jean"
+    groups: [30, 37, 44]
+  - description: "đàn ông đeo kính, áo thể thao xanh dương (lúc đeo tạp dề đen W3C; buổi sáng khoác áo xanh đen có hình in sau lưng)"
+    groups: [4, 6, 7, 21, 23, 25, 28, 56, 51, 35]
+  - description: "đàn ông áo sơ mi xanh dương dài tay, quần sẫm màu"
+    groups: [0, 16, 36]
+  - description: "đàn ông có râu, tóc xoăn, áo len xám, quần jean"
+    groups: [9, 50, 26]
+  - description: "đàn ông lớn tuổi, hói, áo len sẫm màu, quần màu ô liu / kaki"
+    groups: [14, 40, 53]
+  - description: "đàn ông có râu, đội mũ, áo len sọc ngang kem / nâu / đen (lúc cởi ra: áo thun trắng), quần jean"
+    groups: [5, 24, 13, 17]
+  - description: "đàn ông to người, tóc ngắn, áo len xanh đen dài tay, quần sẫm, không đeo băng đầu (vd day1_Kitchen_20_1790)"
+    groups: []
+  - description: "cô gái tóc sáng màu, áo len kem, quần / váy đen"
+    groups: [12, 54, 59]
+  - description: "cô gái tóc đen dài, áo trắng bó (lúc mặc áo len đen in hình trắng), quần nâu"
+    groups: [20, 29, 11, 31, 49]

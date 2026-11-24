@@ -1,0 +1,14 @@
+{"query": "ba người đang nấu ăn lúc 12 giờ trưa", "expect": {"hours": [12], "objects": {"person": "==3"}}}
+{"query": "căn bếp không có người vào buổi sáng", "expect": {"hours": [8, 9, 10], "objects": {"person": "==0"}}}
+{"query": "từ 9h đến 11h có hai người đứng gần bếp", "expect": {"hours": [9, 10, 11]}}
+{"query": "nhóm người tụ tập quanh bàn ăn khoảng 3 giờ chiều", "expect": {"hours": [14, 15, 16], "objects": {"person": ">=3"}}}
+{"query": "a person cutting pineapple at 4pm", "expect": {"hours": [16], "objects": {"person": ">=1"}}}
+{"query": "sau 7 giờ tối, bàn có khăn trải caro đỏ", "expect": {"hours": [19, 20]}}
+{"query": "trước 10h có người ngồi ở bàn ăn", "expect": {"hours": [8, 9], "objects": {"person": ">=1"}}}
+{"query": "people eating together in the evening", "expect": {"hours": [17, 18, 19, 20], "objects": {"person": ">=1"}}}
+{"query": "người đang rửa bát ở bồn rửa", "expect": {"zones": {"sink": ">=1"}}}
+{"query": "hai người đứng ở bếp nấu", "expect": {"zones": {"stove": ">=1"}}}
+{"query": "có người ngồi trên sofa ở phòng khách", "expect": {"zones": {"living": ">=1"}}}
+{"query": "someone walking close to the camera", "expect": {"zones": {"foreground": ">=1"}}}
+{"query": "không có ai ở bếp nấu vào buổi chiều", "expect": {"hours": [13, 14, 15, 16, 17], "zones": {"stove": "==0"}}}
+{"query": "người mặc áo xanh dương đứng sau đảo bếp", "expect": {"zones": {"island": ">=1"}}}
